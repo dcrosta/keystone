@@ -2,7 +2,7 @@ import mimetypes
 import os, os.path
 
 from werkzeug.wrappers import Request, Response
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, MethodNotAllowed
 
 from keystone import http
 from keystone.render import *
@@ -21,17 +21,20 @@ class Keystone(object):
     def dispatch(self, request):
         content_type, content_encoding, body = self._find(request.path)
         if content_type == 'text/keystone':
-            # TODO: check HTTP method
+            # body is a relative filesystem path to the template
+            template = body
 
-            # then body is actually the relative
-            # filesystem path to the template
+            valid_methods = self.engine.valid_methods(template)
+            if request.method not in valid_methods:
+                return MethodNotAllowed(valid_methods)
+
             content_type = 'text/html'
             viewglobals = {
                 'request': request,
                 'http': http,
             }
             try:
-                body = self.engine.render(body, viewglobals)
+                body = self.engine.render(template, viewglobals)
             except HTTPException, ex:
                 return ex.get_response(request.environ)
 

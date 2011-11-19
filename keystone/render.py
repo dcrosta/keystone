@@ -2,10 +2,20 @@ __all__ = ('RenderEngine', 'InvalidTemplate')
 
 import jinja2
 import os, os.path
+import re
 import sys
 
 class InvalidTemplate(Exception):
     """Indicates that a template has more than one separator."""
+
+class Template(object):
+    """Holds a template body, viewfunc, mtime, and valid methods."""
+
+    def __init__(self, viewfunc, body, valid_methods):
+        self.viewfunc = viewfunc
+        self.body = body
+        self.mtime = None
+        self.valid_methods = valid_methods
 
 class RenderEngine(object):
     def __init__(self, app):
@@ -13,6 +23,21 @@ class RenderEngine(object):
         self.templates = {}
         self.env = jinja2.Environment(
             loader=jinja2.FunctionLoader(self.get_template))
+
+    def _parse_methods(self, fileobj, viewlines):
+        valid_methods = set(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'])
+        methodscomment = re.compile(r'^# Methods: ([A-Za-z, ]+)')
+        for line in viewlines:
+            match = methodscomment.match(line.lstrip())
+            if match:
+                methods = match.group(1)
+                methods = [m.strip() for m in methods.split(',')]
+                for method in methods:
+                    if method not in valid_methods:
+                        warnings.warn('Invalid method "%s" in %s' % (method, fileobj.name))
+                return [m for m in methods if m in valid_methods]
+
+        return ['GET']
 
     def parse(self, fileobj):
         """Parse a .ks file into a view callable and a template
@@ -33,7 +58,12 @@ class RenderEngine(object):
                 active.append(line)
 
         if not second:
-            return lambda viewglobals: viewglobals, ''.join(first)
+            return Template(
+                viewfunc=None,
+                body=''.join(first),
+                valid_methods=['GET'])
+
+        valid_methods = self._parse_methods(fileobj, first)
 
         safe_app_dir = self.app.app_dir.replace('"', '\\"')
         first.insert(0, 'import sys\n')
@@ -46,6 +76,11 @@ class RenderEngine(object):
             exec viewcode in {}, context
             return context
 
+        return Template(
+            viewfunc=viewfunc,
+            body=''.join(second),
+            valid_methods=valid_methods)
+
         return viewfunc, ''.join(second)
 
     def refresh_if_needed(self, name):
@@ -54,28 +89,35 @@ class RenderEngine(object):
         path relative to the app_dir."""
         filename = os.path.abspath(os.path.join(self.app.app_dir, name))
         mtime = os.stat(filename).st_mtime
-        lastmtime, viewfunc, template = self.templates.get(name, (None, None, None))
+        template = self.templates.get(name)
 
-        if lastmtime is None or mtime > lastmtime:
+        if template is None or template.mtime < mtime:
             lastmtime = mtime
-            viewfunc, template = self.parse(file(filename, 'r+b'))
-            self.templates[name] = (lastmtime, viewfunc, template)
+            template = self.parse(file(filename, 'r+b'))
+            template.mtime = mtime
+            self.templates[name] = template
+
+    def valid_methods(self, name):
+        self.refresh_if_needed(name)
+        template = self.templates[name]
+        return template.valid_methods
 
     def render(self, name, viewglobals):
         """Template rendering entry point."""
         self.refresh_if_needed(name)
-        mtime, viewfunc, template = self.templates[name]
-        return self.env.get_template(name).generate(**viewfunc(viewglobals))
+        template = self.templates[name]
+        return self.env.get_template(name).generate(**template.viewfunc(viewglobals))
 
     def get_template(self, name):
         """Jinja2 template loader function."""
         self.refresh_if_needed(name)
-        cached_mtime, _, template = self.templates.get(name, (None, None, None))
+        template = self.templates[name]
+        cached_mtime = template.mtime
 
         def uptodate():
             self.refresh_if_needed(name)
-            mtime, _, _ = self.templates.get(name, (None, None, None))
-            return cached_mtime and mtime and mtime <= cached_mtime
+            template = self.templates[name]
+            return template and template.mtime and cached_mtime and template.mtime <= cached_mtime
 
-        return template, name, uptodate
+        return template.body, name, uptodate
 
