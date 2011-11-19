@@ -3,3 +3,5 @@
 distribute-0.6.24-py2.7.egg
 distribute-0.6.24.tar.gz
 keystone.egg-info
+dist
+build
