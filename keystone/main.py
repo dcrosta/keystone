@@ -2,7 +2,7 @@ import mimetypes
 import os, os.path
 
 from werkzeug.wrappers import Request, Response
-from werkzeug.exceptions import HTTPException, MethodNotAllowed
+from werkzeug.exceptions import HTTPException
 
 from keystone import http
 from keystone.render import *
@@ -19,41 +19,61 @@ class Keystone(object):
         return response(environ, start_response)
 
     def dispatch(self, request):
-        content_type, content_encoding, body = self._find(request.path)
-        if content_type == 'text/keystone':
-            # body is a relative filesystem path to the template
-            template = body
+        try:
+            found = self._find(request.path)
 
-            valid_methods = self.engine.valid_methods(template)
-            if request.method not in valid_methods:
-                return MethodNotAllowed(valid_methods)
+            if isinstance(found, Template):
+                return self.render_keystone(request, found)
+            elif isinstance(found, file):
+                return self.render_static(request, found)
 
-            content_type = 'text/html'
-            viewglobals = {
-                'request': request,
-                'http': http,
-            }
-            try:
-                body = self.engine.render(template, viewglobals)
-            except HTTPException, ex:
-                return ex.get_response(request.environ)
+            raise http.NotFound()
 
-        if body:
-            # TODO: ensure method is GET
-            response = Response(body)
-            response.content_type = content_type
+        except HTTPException, httpe:
+            # TODO: error handler hooks
+            return httpe.get_response(request.environ)
 
-            if content_encoding:
-                response.content_encoding = content_encoding
 
-            if all(hasattr(body, x) for x in ('seek', 'tell')):
-                body.seek(0, os.SEEK_END)
-                response.content_length = body.tell()
-                body.seek(0, os.SEEK_SET)
+    def render_keystone(self, request, template):
+        if request.method not in template.valid_methods:
+            raise http.MethodNotAllowed(valid_methods)
 
-            return response
+        response = Response()
+        response.headers.set('Content-Type', 'text/html')
 
-        return http.NotFound().get_response()
+        viewglobals = {
+            'request': request,
+            'http': http,
+            'headers': response.headers,
+            'cookies': request.cookies,
+            'set_cookie': response.set_cookie,
+            'delete_cookie': response.delete_cookie,
+        }
+
+        try:
+            response.response = self.engine.render(template, viewglobals)
+        except HTTPException, ex:
+            return ex.get_response(request.environ)
+
+        return response
+
+    def render_static(self, request, fileobj):
+        # TODO: handle conditional get
+        if request.method != 'GET':
+            raise http.MethodNotAllowed(['GET'])
+
+        content_type, content_encoding = mimetypes.guess_type(fileobj.name)
+
+        response = Response(fileobj)
+        response.content_type = content_type
+        fileobj.seek(0, os.SEEK_END)
+        response.content_length = fileobj.tell()
+        fileobj.seek(0, os.SEEK_SET)
+
+        if content_encoding:
+            response.content_encoding = content_encoding
+
+        return response
 
     def _find(self, path):
         if path.startswith('/'):
@@ -64,17 +84,15 @@ class Keystone(object):
         # first: see if an exact match exists
         fspath = os.path.abspath(os.path.join(self.app_dir, path))
         if os.path.exists(fspath):
-            t, e = mimetypes.guess_type(fspath)
-            return t, e, file(fspath, 'r+b')
+            return file(fspath, 'r+b')
 
         # next: see if an exact path match with
         # extension ".ks" exists, and load template
         fspath += '.ks'
         if os.path.exists(fspath):
-            return 'text/keystone', None, path + '.ks'
+            return self.engine.get_template(path + '.ks')
 
-        return None, None, None
-
+        return None
 
 
 def serve():

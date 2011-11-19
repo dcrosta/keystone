@@ -109,6 +109,10 @@ class RenderEngine(object):
         jinja_template = self.env.get_template(template.name)
         return jinja_template.generate(**template.viewfunc(viewglobals))
 
+    def get_template(self, name):
+        self.refresh_if_needed(name)
+        return self.templates.get(name)
+
     def get_template_body(self, name):
         """Jinja2 template loader function."""
         self.refresh_if_needed(name)
