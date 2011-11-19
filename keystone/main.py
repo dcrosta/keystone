@@ -2,13 +2,16 @@ import mimetypes
 import os, os.path
 
 from werkzeug.wrappers import Request, Response
+from werkzeug.exceptions import HTTPException
 
+from keystone import http
 from keystone.render import *
 
 class Keystone(object):
 
     def __init__(self, app_dir):
         self.app_dir = app_dir
+        self.engine = RenderEngine(self)
 
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -16,28 +19,38 @@ class Keystone(object):
         return response(environ, start_response)
 
     def dispatch(self, request):
-        response = Response('Not Found', status=404)
-
-        content_type, content_encoding, iterable = self._find(request.path)
+        content_type, content_encoding, body = self._find(request.path)
         if content_type == 'text/keystone':
-            content_type = 'text/html'
-            iterable = render_keystone(iterable, jinja)
+            # TODO: check HTTP method
 
-        if iterable:
-            response = Response(iterable)
+            # then body is actually the relative
+            # filesystem path to the template
+            content_type = 'text/html'
+            viewglobals = {
+                'request': request,
+                'http': http,
+            }
+            try:
+                body = self.engine.render(body, viewglobals)
+            except HTTPException, ex:
+                return ex.get_response(request.environ)
+
+        if body:
+            # TODO: ensure method is GET
+            response = Response(body)
             response.content_type = content_type
 
             if content_encoding:
                 response.content_encoding = content_encoding
 
-            if all(hasattr(iterable, x) for x in ('seek', 'tell')):
-                iterable.seek(0, os.SEEK_END)
-                response.content_length = iterable.tell()
-                iterable.seek(0, os.SEEK_SET)
-            elif hasattr(iterable, 'len'):
-                response.content_length = sum(map(len, map(unicode, iterable)))
+            if all(hasattr(body, x) for x in ('seek', 'tell')):
+                body.seek(0, os.SEEK_END)
+                response.content_length = body.tell()
+                body.seek(0, os.SEEK_SET)
 
-        return response
+            return response
+
+        return http.NotFound().get_response()
 
     def _find(self, path):
         if path.startswith('/'):
@@ -55,7 +68,7 @@ class Keystone(object):
         # extension ".ks" exists, and load template
         fspath += '.ks'
         if os.path.exists(fspath):
-            return 'text/keystone', None, file(fspath, 'r+b')
+            return 'text/keystone', None, path + '.ks'
 
         return None, None, None
 
