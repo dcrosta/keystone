@@ -1,4 +1,4 @@
-__all__ = ('RenderEngine', 'InvalidTemplate')
+__all__ = ('Template', 'RenderEngine', 'InvalidTemplate')
 
 import jinja2
 import os, os.path
@@ -14,15 +14,16 @@ class Template(object):
     def __init__(self, viewfunc, body, valid_methods):
         self.viewfunc = viewfunc
         self.body = body
-        self.mtime = None
         self.valid_methods = valid_methods
+        self.mtime = None
+        self.name = None
 
 class RenderEngine(object):
     def __init__(self, app):
         self.app = app
         self.templates = {}
         self.env = jinja2.Environment(
-            loader=jinja2.FunctionLoader(self.get_template))
+            loader=jinja2.FunctionLoader(self.get_template_body))
 
     def _parse_methods(self, fileobj, viewlines):
         valid_methods = set(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'])
@@ -95,6 +96,7 @@ class RenderEngine(object):
             lastmtime = mtime
             template = self.parse(file(filename, 'r+b'))
             template.mtime = mtime
+            template.name = name
             self.templates[name] = template
 
     def valid_methods(self, name):
@@ -102,13 +104,12 @@ class RenderEngine(object):
         template = self.templates[name]
         return template.valid_methods
 
-    def render(self, name, viewglobals):
+    def render(self, template, viewglobals):
         """Template rendering entry point."""
-        self.refresh_if_needed(name)
-        template = self.templates[name]
-        return self.env.get_template(name).generate(**template.viewfunc(viewglobals))
+        jinja_template = self.env.get_template(template.name)
+        return jinja_template.generate(**template.viewfunc(viewglobals))
 
-    def get_template(self, name):
+    def get_template_body(self, name):
         """Jinja2 template loader function."""
         self.refresh_if_needed(name)
         template = self.templates[name]
