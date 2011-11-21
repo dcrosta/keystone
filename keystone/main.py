@@ -33,6 +33,10 @@ from werkzeug.exceptions import HTTPException
 from keystone import http
 from keystone.render import *
 
+# requests for paths ending in these extensions
+# will be rejected with status 404
+HIDDEN_EXTS = ('.ks', '.py', '.pyc', '.pyo')
+
 class Keystone(object):
 
     def __init__(self, app_dir):
@@ -102,6 +106,9 @@ class Keystone(object):
         return response
 
     def _find(self, path):
+        if any(path.endswith(ext) for ext in HIDDEN_EXTS):
+            return None
+
         if path.startswith('/'):
             path = path[1:]
         if path == '':
