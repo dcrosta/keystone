@@ -66,7 +66,7 @@ class Keystone(object):
 
     def render_keystone(self, request, template):
         if request.method not in template.valid_methods:
-            raise http.MethodNotAllowed(valid_methods)
+            raise http.MethodNotAllowed(template.valid_methods)
 
         response = Response()
         response.headers.set('Content-Type', 'text/html')
