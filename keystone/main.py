@@ -130,23 +130,40 @@ class Keystone(object):
 
 def serve():
     import werkzeug.serving
-    import sys
+    import argparse
 
-    # TODO: argparser
-    host = '0.0.0.0'
-    port = 5000
-    use_reloader = True
-    use_debugger = True
-    app_dir = sys.argv[1] if len(sys.argv) == 2 else os.getcwd()
-    app_dir = os.path.abspath(app_dir)
+    parser = argparse.ArgumentParser(description='Run a Keystone application')
+    parser.add_argument('app_dir', nargs='?', default=os.getcwd(),
+                        help='Path to Keystone application [current dir]')
+    parser.add_argument('-p', '--port', dest='port', metavar='PORT', type=int, default=5000,
+                        help='Port to listen on [5000]')
+    parser.add_argument('-H', '--host', dest='host', metavar='HOST', type=str, default='0.0.0.0',
+                        help='Hostname or IP address to listen on [0.0.0.0]')
+    parser.add_argument('-t', '--threaded', dest='threaded', action='store_const', const=True, default=False,
+                        help='Use threads for concurrency; always False if -d/--debug is set [False]')
+    parser.add_argument('-d', '--debug', dest='debug', action='store_const', const=False, default=True,
+                        help='Display Python tracebacks in the browser [False]')
+    parser.add_argument('--heroku', dest='paas', action='store_const', const='heroku',
+                        help='Auto-configure host, port, app_dir for deployment on Heroku')
 
-    app = Keystone(
-        app_dir=app_dir,
-    )
+    args = parser.parse_args()
 
+    if args.paas == 'heroku':
+        args.host = '0.0.0.0'
+        args.port = int(os.environ['PORT'])
+        args.app_dir = os.getcwd()
+
+    if args.debug:
+        args.threaded = False
+
+    app = Keystone(app_dir=args.app_dir)
     return werkzeug.serving.run_simple(
-        host, port, app,
-        use_reloader=use_reloader,
-        use_debugger=use_debugger,
+        hostname=args.host,
+        port=args.port,
+        application=app,
+        use_reloader=args.debug,
+        use_debugger=args.debug,
+        use_evalex=args.debug,
+        threaded=args.threaded,
     )
 
