@@ -24,6 +24,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
+from datetime import datetime
+import hashlib
 import mimetypes
 import os, os.path
 
@@ -39,8 +41,9 @@ HIDDEN_EXTS = ('.ks', '.py', '.pyc', '.pyo')
 
 class Keystone(object):
 
-    def __init__(self, app_dir):
+    def __init__(self, app_dir=os.getcwd(), static_expires=86400):
         self.app_dir = app_dir
+        self.static_expires = 86400
         self.engine = RenderEngine(self)
 
     def __call__(self, environ, start_response):
@@ -85,21 +88,25 @@ class Keystone(object):
         return response
 
     def render_static(self, request, fileobj):
-        # TODO: handle conditional get
         if request.method != 'GET':
             raise http.MethodNotAllowed(['GET'])
 
         content_type, content_encoding = mimetypes.guess_type(fileobj.name)
 
+        stat = os.stat(fileobj.name)
+        etag = hashlib.md5(str(stat.st_mtime)).hexdigest()
+
         response = Response(fileobj)
         response.content_type = content_type
-        fileobj.seek(0, os.SEEK_END)
-        response.content_length = fileobj.tell()
-        fileobj.seek(0, os.SEEK_SET)
+        response.content_length = stat.st_size
+        response.add_etag(etag)
+        response.last_modified = datetime.utcfromtimestamp(stat.st_mtime)
+        response.expires = datetime.utcfromtimestamp(stat.st_mtime + self.static_expires)
 
         if content_encoding:
             response.content_encoding = content_encoding
 
+        response.make_conditional(request)
         return response
 
     def _find(self, path):
