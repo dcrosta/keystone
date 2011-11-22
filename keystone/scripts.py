@@ -99,7 +99,7 @@ def configure(args):
         ensure_line('wsgi.py', 'from keystone.main import Keystone')
         ensure_line('wsgi.py', 'application = Keystone("/app")')
 
-        ensure_line('Procfile', 'www: gunicorn wsgi:app -w 4')
+        ensure_line('Procfile', 'web: gunicorn wsgi:application -w 4 -b 0.0.0.0:$PORT')
 
     if args.paas == 'dotcloud':
         ensure_line('dotcloud.yml', 'www:')
