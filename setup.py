@@ -36,7 +36,7 @@ setup(
     packages=find_packages(),
     entry_points={
         'console_scripts': [
-            'keystone = keystone.main:serve',
+            'keystone = keystone.scripts:main',
         ],
     }
 )
