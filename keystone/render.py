@@ -37,10 +37,9 @@ class InvalidTemplate(Exception):
 class Template(object):
     """Holds a template body, viewfunc, mtime, and valid methods."""
 
-    def __init__(self, viewfunc, body, valid_methods):
+    def __init__(self, viewfunc, body):
         self.viewfunc = viewfunc
         self.body = body
-        self.valid_methods = valid_methods
         self.mtime = None
         self.name = None
 
@@ -50,21 +49,6 @@ class RenderEngine(object):
         self.templates = {}
         self.env = jinja2.Environment(
             loader=jinja2.FunctionLoader(self.get_template_body))
-
-    def _parse_methods(self, fileobj, viewlines):
-        valid_methods = set(['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'])
-        methodscomment = re.compile(r'^# Methods: ([A-Za-z, ]+)')
-        for line in viewlines:
-            match = methodscomment.match(line.lstrip())
-            if match:
-                methods = match.group(1)
-                methods = [m.strip() for m in methods.split(',')]
-                for method in methods:
-                    if method not in valid_methods:
-                        warnings.warn('Invalid method "%s" in %s' % (method, fileobj.name))
-                return [m for m in methods if m in valid_methods]
-
-        return ['GET']
 
     def parse(self, fileobj):
         """Parse a .ks file into a view callable and a template
@@ -87,10 +71,7 @@ class RenderEngine(object):
         if not second:
             return Template(
                 viewfunc=None,
-                body=''.join(first),
-                valid_methods=['GET'])
-
-        valid_methods = self._parse_methods(fileobj, first)
+                body=''.join(first))
 
         safe_app_dir = self.app.app_dir.replace('"', '\\"')
         first.insert(0, 'import sys\n')
@@ -105,8 +86,7 @@ class RenderEngine(object):
 
         return Template(
             viewfunc=viewfunc,
-            body=''.join(second),
-            valid_methods=valid_methods)
+            body=''.join(second))
 
         return viewfunc, ''.join(second)
 
@@ -124,11 +104,6 @@ class RenderEngine(object):
             template.mtime = mtime
             template.name = name
             self.templates[name] = template
-
-    def valid_methods(self, name):
-        self.refresh_if_needed(name)
-        template = self.templates[name]
-        return template.valid_methods
 
     def render(self, template, viewglobals):
         """Template rendering entry point."""
