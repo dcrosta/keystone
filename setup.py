@@ -13,11 +13,12 @@ if version_info < (2, 7):
     # no argparse in 2.6 standard
     REQUIRES.append('argparse')
 
+from keystone import __version__
 
 setup(
     name='Keystone',
     description='A very simple, yet flexible, dynamic website framework',
-    version='0.1',
+    version=__version__,
     author='Dan Crosta',
     author_email='dcrosta@late.am',
     license='BSD',
