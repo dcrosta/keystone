@@ -37,11 +37,15 @@ class InvalidTemplate(Exception):
 class Template(object):
     """Holds a template body, viewfunc, mtime, and valid methods."""
 
-    def __init__(self, viewfunc, body):
+    def __init__(self, viewfunc, body, mtime=None, name=None):
         self.viewfunc = viewfunc
         self.body = body
-        self.mtime = None
-        self.name = None
+        self.mtime = mtime
+        self.name = name
+        self.urlparams = {}
+
+    def copy(self):
+        return Template(self.viewfunc, self.body, self.mtime, self.name)
 
 class RenderEngine(object):
     def __init__(self, app):
@@ -108,6 +112,7 @@ class RenderEngine(object):
     def render(self, template, viewglobals):
         """Template rendering entry point."""
         jinja_template = self.env.get_template(template.name)
+        viewglobals.update(template.urlparams)
         return jinja_template.generate(**template.viewfunc(viewglobals))
 
     def get_template(self, name):

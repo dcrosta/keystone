@@ -28,6 +28,7 @@ from datetime import datetime
 import hashlib
 import mimetypes
 import os, os.path
+import warnings
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.exceptions import HTTPException
@@ -129,5 +130,61 @@ class Keystone(object):
         if os.path.exists(fspath):
             return self.engine.get_template(path + '.ks')
 
-        return None
+        # finally: see if a parameterized path
+        # matches the request path. the matched
+        # file must end in ".ks"
+
+        parts = path.split('/')
+        pathdepth = path.count('/')
+        candidates = []
+
+        for dirpath, dirnames, filenames in os.walk(self.app_dir):
+            urlpath = dirpath[len(self.app_dir)+1:]
+            depth = urlpath.count('/')
+
+            for i, dirname in reversed(list(enumerate(dirnames))):
+                if dirname.startswith('%'):
+                    continue
+                if depth < pathdepth and dirname == parts[depth]:
+                    continue
+                del dirnames[i]
+
+            for filename in filenames:
+                if not filename.endswith('.ks'):
+                    continue
+                if depth == pathdepth and filename.startswith('%'):
+                    candidates.append(os.path.join(urlpath, filename))
+                if depth + 1 == pathdepth and filename == 'index.ks' and parts[-1] in ('', 'index'):
+                    candidates.append(os.path.join(urlpath, filename))
+
+        if not candidates:
+            return None
+
+        # score is +1 for each exactly-matching path segment
+        maxscore = 0
+        for i, candidate in enumerate(candidates):
+            score = 0
+            urlparams = {}
+            for pathpart, candidatepart in zip(parts, candidate.split('/')):
+                if pathpart == candidatepart:
+                    score += 1
+                elif candidatepart.startswith('%'):
+                    name = candidatepart[1:]
+                    urlparams[name] = pathpart
+            maxscore = max(maxscore, score)
+            candidates[i] = (score, candidate, urlparams)
+
+        candidates.sort(key=lambda item: item[1])
+        candidates.sort(key=lambda item: item[0], reverse=True)
+        candidates = [c for c in candidates if c[0] == maxscore]
+
+        if len(candidates) > 1:
+            warnings.warn(
+                'Multiple parameterized paths matched: %r, choosing %r' %
+                ([c[1] for c in candidates], candidates[0][1]))
+
+        template = self.engine.get_template(candidates[0][1]).copy()
+        template.urlparams = candidates[0][2]
+
+        return template
 
