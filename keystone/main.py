@@ -156,6 +156,8 @@ class Keystone(object):
                     candidates.append(os.path.join(urlpath, filename))
                 if depth + 1 == pathdepth and filename == 'index.ks' and parts[-1] in ('', 'index'):
                     candidates.append(os.path.join(urlpath, filename))
+                if depth + 1 == pathdepth and filename.startswith('%') and parts[-1] not in ('', 'index'):
+                    candidates.append(os.path.join(urlpath, filename))
 
         if not candidates:
             return None
@@ -170,6 +172,8 @@ class Keystone(object):
                     score += 1
                 elif candidatepart.startswith('%'):
                     name = candidatepart[1:]
+                    if name.endswith('.ks'):
+                        name = name[:-3]
                     urlparams[name] = pathpart
             maxscore = max(maxscore, score)
             candidates[i] = (score, candidate, urlparams)
