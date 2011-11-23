@@ -40,7 +40,7 @@ def main():
     parser.add_argument('-d', '--debug', dest='debug', action='store_const', const=False, default=True,
                         help='Display Python tracebacks in the browser [False]')
 
-    parser.add_argument('--configure', dest='paas', action='store', choices=['heroku', 'dotcloud'],
+    parser.add_argument('--configure', dest='paas', action='store', choices=['heroku', 'dotcloud', 'epio'],
                         help='Set up configuration files in app_dir for PaaS services')
 
     args = parser.parse_args()
@@ -90,7 +90,7 @@ def configure(args):
             fp.write('\n')
 
 
-    if args.paas in ('heroku', 'dotcloud'):
+    if args.paas in ('heroku', 'dotcloud', 'epio'):
         ensure_line('requirements.txt', 'keystone == %s' % keystone.__version__)
 
     if args.paas == 'heroku':
@@ -108,4 +108,13 @@ def configure(args):
 
         ensure_line('wsgi.py', 'from keystone.main import Keystone')
         ensure_line('wsgi.py', 'application = Keystone("/home/dotcloud/current")')
+
+    if args.paas == 'epio':
+        ensure_line('epio.ini', '[wsgi]')
+        ensure_line('epio.ini', 'requirements = requirements.txt')
+        ensure_line('epio.ini', 'entrypoint = wsgi:application')
+
+        ensure_line('wsgi.py', 'from keystone.main import Keystone')
+        ensure_line('wsgi.py', 'from os import getcwd')
+        ensure_line('wsgi.py', 'application = Keystone(getcwd())')
 
