@@ -104,7 +104,7 @@ class RenderEngine(object):
 
         if template is None or template.mtime < mtime:
             lastmtime = mtime
-            template = self.parse(file(filename, 'r+b'))
+            template = self.parse(file(filename, 'rb'))
             template.mtime = mtime
             template.name = name
             self.templates[name] = template

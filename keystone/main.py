@@ -122,7 +122,7 @@ class Keystone(object):
         # first: see if an exact match exists
         fspath = os.path.abspath(os.path.join(self.app_dir, path))
         if os.path.exists(fspath):
-            return file(fspath, 'r+b')
+            return file(fspath, 'rb')
 
         # next: see if an exact path match with
         # extension ".ks" exists, and load template
