@@ -1,5 +1,5 @@
 from distribute_setup import use_setuptools
-use_setuptools()
+use_setuptools('0.6.15')
 
 from setuptools import setup, find_packages
 from sys import version_info
