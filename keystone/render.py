@@ -74,7 +74,7 @@ class RenderEngine(object):
 
         if not second:
             return Template(
-                viewfunc=None,
+                viewfunc=lambda x: x,
                 body=''.join(first))
 
         safe_app_dir = self.app.app_dir.replace('"', '\\"')
