@@ -17,7 +17,7 @@ from keystone import __version__
 
 setup(
     name='Keystone',
-    description='A very simple, yet flexible, dynamic website framework',
+    description='A very simple web framework',
     version=__version__,
     author='Dan Crosta',
     author_email='dcrosta@late.am',
