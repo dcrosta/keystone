@@ -119,10 +119,10 @@ module is imported (and thus executed) only once.
 Keystone and Jinja
 ------------------
 
-All in-scope Python variables, including :doc:`/viewvars` set by Keystone
-itself, are passed into the Jinja2 context during rendering. However, it is
-not advised to maipulate the :doc:`/viewvars` from within template code, as
-this will lead to difficult-to-maintain code.
+All in-scope Python variables, including :doc:`/view-variables` set by
+Keystone itself, are passed into the Jinja2 context during rendering.
+However, it is not advised to maipulate the :doc:`/view-variables` from
+within template code, as this will lead to difficult-to-maintain code.
 
 Keystone implements a special Jinja2 template loader to load templates from
 ``.ks`` files. In addition, it can load plain HTML files (with extension

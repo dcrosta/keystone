@@ -18,7 +18,7 @@ pairs are separated by an ``&``, so a complete URL with query string looks
 like ``http://www.exmaple.com/?first_name=Dan&last_name=Crosta``.
 
 In Keystone, you can access query string parameters with the
-``request.values`` object (this object, and many other :doc:`/viewvars` are
+``request.values`` object (this object, and many other :doc:`/view-variables` are
 available by default in the Python portion of your page, as if by magic):
 
 .. code-block:: html+jinja

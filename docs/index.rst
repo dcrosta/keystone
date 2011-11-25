@@ -20,7 +20,7 @@ Documentation Sections
   If you're comfortable with Python and web programming, go here to learn
   what's different about Keystone.
 
-:doc:`viewvars`
+:doc:`view-variables`
   Keystone makes most things your Python code will need automatically
   available to view code.
 
@@ -42,6 +42,6 @@ Indices and tables
 
    tutorial
    quickstart
-   viewvars
+   view-variables
    advanced
    deployment
