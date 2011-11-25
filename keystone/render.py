@@ -26,6 +26,8 @@
 
 __all__ = ('Template', 'RenderEngine', 'InvalidTemplate')
 
+import compiler
+from compiler.ast import Import, From
 import jinja2
 import os, os.path
 import re
@@ -72,27 +74,50 @@ class RenderEngine(object):
             else:
                 active.append(line)
 
-        if not second:
+        if active is first:
             return Template(
                 viewfunc=lambda x: x,
                 body=''.join(first))
 
-        safe_app_dir = self.app.app_dir.replace('"', '\\"')
-        first.insert(0, 'import sys\n')
-        first.insert(1, 'if "%s" not in sys.path: sys.path.append("%s")\n' % (safe_app_dir, safe_app_dir))
-
-        # generate the view function
-        viewcode = compile(''.join(first), fileobj.name, 'exec')
-        def viewfunc(viewglobals):
-            context = viewglobals.copy()
-            exec viewcode in {}, context
-            return context
+        viewcode, viewglobals = self.compile(''.join(first))
+        def viewfunc(viewlocals):
+            exec viewcode in viewglobals, viewlocals
+            return viewlocals
 
         return Template(
             viewfunc=viewfunc,
             body=''.join(second))
 
         return viewfunc, ''.join(second)
+
+    def compile(self, viewcode_str):
+        """Compile the view code and return a code object
+        and dictionary of globals needed by the code object.
+        """
+        viewcode = compile(viewcode_str, fileobj.name, 'exec')
+
+        # scan top-level code only for "import foo" and
+        # "from foo import *" and "from foo import bar, baz"
+        viewglobals = {'__builtins__': __builtins__}
+        for stmt in compiler.parse(viewcode_str).node:
+            if isinstance(stmt, Import):
+                modname, asname = stmt.names[0]
+                if asname is None:
+                    asname = modname
+                viewglobals[asname] = __import__(modname)
+            elif isinstance(stmt, From):
+                fromlist = [x[0] for x in stmt.names]
+                module = __import__(stmt.modname, {}, {}, fromlist)
+                for name, asname in stmt.names:
+                    if name == '*':
+                        for starname in getattr(module, '__all__', dir(module)):
+                            viewglobals[starname] = getattr(module, starname)
+                    else:
+                        if asname is None:
+                            asname = name
+                        viewglobals[asname] = getattr(module, name)
+
+        return viewcode, viewglobals
 
     def refresh_if_needed(self, name):
         """Update the cached modification time, view func,
@@ -109,11 +134,11 @@ class RenderEngine(object):
             template.name = name
             self.templates[name] = template
 
-    def render(self, template, viewglobals):
+    def render(self, template, viewlocals):
         """Template rendering entry point."""
         jinja_template = self.env.get_template(template.name)
-        viewglobals.update(template.urlparams)
-        return jinja_template.generate(**template.viewfunc(viewglobals))
+        viewlocals.update(template.urlparams)
+        return jinja_template.generate(**template.viewfunc(viewlocals))
 
     def get_template(self, name):
         self.refresh_if_needed(name)

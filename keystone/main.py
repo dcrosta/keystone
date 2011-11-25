@@ -28,6 +28,7 @@ from datetime import datetime
 import hashlib
 import mimetypes
 import os, os.path
+import sys
 import warnings
 
 from werkzeug.wrappers import Request, Response
@@ -43,9 +44,12 @@ HIDDEN_EXTS = ('.ks', '.py', '.pyc', '.pyo')
 class Keystone(object):
 
     def __init__(self, app_dir=os.getcwd(), static_expires=86400):
-        self.app_dir = app_dir
+        self.app_dir = os.path.abspath(app_dir)
         self.static_expires = 86400
         self.engine = RenderEngine(self)
+
+        if self.app_dir not in sys.path:
+            sys.path.insert(0, self.app_dir)
 
     def __call__(self, environ, start_response):
         request = Request(environ)
@@ -72,7 +76,7 @@ class Keystone(object):
         response = Response()
         response.headers.set('Content-Type', 'text/html')
 
-        viewglobals = {
+        viewlocals = {
             'request': request,
             'http': http,
             'headers': response.headers,
@@ -82,7 +86,7 @@ class Keystone(object):
         }
 
         try:
-            response.response = self.engine.render(template, viewglobals)
+            response.response = self.engine.render(template, viewlocals)
         except HTTPException, ex:
             return ex.get_response(request.environ)
 
