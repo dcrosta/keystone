@@ -97,7 +97,10 @@ class Keystone(object):
         if request.method != 'GET':
             raise http.MethodNotAllowed(['GET'])
 
-        content_type, content_encoding = mimetypes.guess_type(fileobj.name)
+        content_type, _ = mimetypes.guess_type(fileobj.name)
+
+        if content_type.startswith('text/'):
+            content_type = '%s; charset=utf-8' % content_type
 
         stat = os.stat(fileobj.name)
         etag = hashlib.md5(str(stat.st_mtime)).hexdigest()
@@ -108,9 +111,6 @@ class Keystone(object):
         response.add_etag(etag)
         response.last_modified = datetime.utcfromtimestamp(stat.st_mtime)
         response.expires = datetime.utcfromtimestamp(stat.st_mtime + self.static_expires)
-
-        if content_encoding:
-            response.content_encoding = content_encoding
 
         response.make_conditional(request)
         return response
