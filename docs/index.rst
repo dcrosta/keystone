@@ -13,13 +13,16 @@ Documentation Sections
 ----------------------
 
 :doc:`tutorial`
-  Learn HTML and Python web development in 30 minutes
+  Learn HTML and Python web development in 30 minutes. For those new to
+  Python and web programming.
+
+:doc:`quickstart`
+  If you're comfortable with Python and web programming, go here to learn
+  what's different about Keystone.
 
 :doc:`viewvars`
-  Variables available to your Python code
-
-:doc:`templatevars`
-  Variables available to your templates
+  Keystone makes most things your Python code will need automatically
+  available to view code.
 
 :doc:`advanced`
   Advanced topics
@@ -40,6 +43,5 @@ Indices and tables
    tutorial
    quickstart
    viewvars
-   templatevars
    advanced
    deployment
