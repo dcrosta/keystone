@@ -134,3 +134,8 @@ Python code `is not` executed during the request; thus if you require
 certain template variables in a parent template, the child view must set
 them itself.
 
+`Template filters <http://jinja.pocoo.org/docs/api/#custom-filters>`_ can be
+registered with the Jinja Environment using the ``@template_filter``
+decorator (imported from ``keystone.render``). The name of the function is
+used as the filter name within the Jinja environment.
+
