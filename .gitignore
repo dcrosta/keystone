@@ -5,3 +5,4 @@ distribute-0.6.24.tar.gz
 keystone.egg-info
 dist
 build
+docs/_build
