@@ -15,7 +15,7 @@ pages can insert their content.
 
 Create ``_base.html`` with the following content:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     <!doctype html>
     <html>
@@ -30,7 +30,7 @@ Create ``_base.html`` with the following content:
 
 Now we can simplify our individual pages considerably. Here's ``index.ks``:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     {% extends "_base.html" %}
 
@@ -43,7 +43,7 @@ Now we can simplify our individual pages considerably. Here's ``index.ks``:
 
 and ``pageone.ks``:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     {% extends "_base.html" %}
 
@@ -71,7 +71,7 @@ time.
 Jinja also allows parameterizing particular bits of text within the page,
 through variable substitution. Replace ``index.ks`` with the following:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     import random
     name = random.choice(['World', 'Friend'])
@@ -102,7 +102,7 @@ essentially, anything) can be done in a a Keystone page, and all the
 variables defined in the Python section become available for use within the
 template section. Here's another example:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     import random
     count_to = random.randint(5, 15)

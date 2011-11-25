@@ -21,7 +21,7 @@ In Keystone, you can access query string parameters with the
 ``request.values`` object (this object, and many other :doc:`/viewvars` are
 available by default in the Python portion of your page, as if by magic):
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     if 'count_to' in request.values:
         count_to = request.values.get('count_to')
@@ -82,7 +82,7 @@ user input unless you've checked it first. In our case, we can use the
 only of characters that represent digits, and ``False`` otherwise) to see if
 it can be a valid number or not:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     if 'count_to' in request.values:
         count_to = request.values.get('count_to')
@@ -118,7 +118,7 @@ not to use your site any more). Instead, we can present an HTML form to our
 users, and ask them to fill it out, resulting in a far better user
 experience. Continuing to build out ``index.ks``, let's add a form:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     if 'count_to' in request.values:
         count_to = request.values.get('count_to')
@@ -164,7 +164,7 @@ want to use a "POST" request, which sends the form data along side the URL,
 but not actually in it. You can do this by replacing "``<form>``" with
 "``<form method="POST">``" in the template.
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     if 'count_to' in request.values:
         count_to = request.values.get('count_to')
@@ -224,7 +224,7 @@ respectively).
 
 First, update ``index.ks`` to the following:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     if 'count_to' in request.values:
         count_to = request.values.get('count_to')
@@ -253,7 +253,7 @@ message to the user's browser.
 
 Next, make ``%count_to.ks`` contain the following:
 
-.. code-block:: jinja
+.. code-block:: html+jinja
 
     if count_to.isdigit():
         count_to = int(count_to)

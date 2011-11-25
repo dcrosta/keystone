@@ -12,6 +12,6 @@ What's Next?
 ------------
 
 Keysotne uses Python for server-side code, so if you are new to Python, you
-should `learn Python <http://www.learnpython.org/>`. If you're already
+should `learn Python <http://www.learnpython.org/>`_. If you're already
 familiar with Python, you can move on to :doc:`/advanced`.
 
