@@ -24,7 +24,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-__all__ = ('respond_with', 'Template', 'RenderEngine', 'InvalidTemplate')
+__all__ = ('respond_with', 'template_filter', 'Template',
+           'RenderEngine', 'InvalidTemplate')
 
 import compiler
 from compiler.ast import Import, From
@@ -48,6 +49,16 @@ def respond_with(body):
     """
     raise StopViewFunc(body)
 
+def template_filter(func):
+    """Register a Jinja2 filter function. The name of the function
+    will become the name of the filter in the template environment.
+    """
+    # by the time this is called (from within Python modules in the
+    # application, the RenderEngine, and thus the Jinja Environment,
+    # have already been created
+    jinja_env.filters[func.__name__] = func
+    return func
+
 class Template(object):
     """Holds a template body, viewfunc, mtime, and valid methods."""
 
@@ -61,11 +72,14 @@ class Template(object):
     def copy(self):
         return Template(self.viewfunc, self.body, self.mtime, self.name)
 
+jinja_env = None
 class RenderEngine(object):
     def __init__(self, app):
         self.app = app
         self.templates = {}
-        self.env = jinja2.Environment(
+
+        global jinja_env
+        jinja_env = jinja2.Environment(
             loader=jinja2.FunctionLoader(self.get_template_body))
 
     def parse(self, fileobj):
@@ -148,7 +162,7 @@ class RenderEngine(object):
 
     def render(self, template, viewlocals):
         """Template rendering entry point."""
-        jinja_template = self.env.get_template(template.name)
+        jinja_template = jinja_env.get_template(template.name)
         viewlocals.update(template.urlparams)
         try:
             return jinja_template.generate(**template.viewfunc(viewlocals))
