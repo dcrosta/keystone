@@ -51,6 +51,13 @@ class Keystone(object):
         if self.app_dir not in sys.path:
             sys.path.insert(0, self.app_dir)
 
+        try:
+            import startup
+        except ImportError:
+            import traceback
+            traceback.print_exc()
+            pass
+
     def __call__(self, environ, start_response):
         request = Request(environ)
         response = self.dispatch(request)
