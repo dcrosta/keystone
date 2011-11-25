@@ -24,7 +24,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-__all__ = ('Template', 'RenderEngine', 'InvalidTemplate')
+__all__ = ('respond_with', 'Template', 'RenderEngine', 'InvalidTemplate')
 
 import compiler
 from compiler.ast import Import, From
@@ -35,6 +35,18 @@ import sys
 
 class InvalidTemplate(Exception):
     """Indicates that a template has more than one separator."""
+
+class StopViewFunc(Exception):
+    """Raised by respond_with() to prevent templat rendering."""
+    def __init__(self, body):
+        self.body = body
+
+def respond_with(body):
+    """Passed into viewlocals to allow view code to immediately
+    respond, bypassing templates (e.g. to return binary content
+    from a file or database).
+    """
+    raise StopViewFunc(body)
 
 class Template(object):
     """Holds a template body, viewfunc, mtime, and valid methods."""
@@ -79,7 +91,7 @@ class RenderEngine(object):
                 viewfunc=lambda x: x,
                 body=''.join(first))
 
-        viewcode, viewglobals = self.compile(''.join(first))
+        viewcode, viewglobals = self.compile(''.join(first), fileobj.name)
         def viewfunc(viewlocals):
             exec viewcode in viewglobals, viewlocals
             return viewlocals
@@ -90,11 +102,11 @@ class RenderEngine(object):
 
         return viewfunc, ''.join(second)
 
-    def compile(self, viewcode_str):
+    def compile(self, viewcode_str, filename):
         """Compile the view code and return a code object
         and dictionary of globals needed by the code object.
         """
-        viewcode = compile(viewcode_str, fileobj.name, 'exec')
+        viewcode = compile(viewcode_str, filename, 'exec')
 
         # scan top-level code only for "import foo" and
         # "from foo import *" and "from foo import bar, baz"
@@ -138,7 +150,10 @@ class RenderEngine(object):
         """Template rendering entry point."""
         jinja_template = self.env.get_template(template.name)
         viewlocals.update(template.urlparams)
-        return jinja_template.generate(**template.viewfunc(viewlocals))
+        try:
+            return jinja_template.generate(**template.viewfunc(viewlocals))
+        except StopViewFunc, stop:
+            return stop.body
 
     def get_template(self, name):
         self.refresh_if_needed(name)
