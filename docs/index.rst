@@ -30,13 +30,6 @@ Documentation Sections
 :doc:`deployment`
   How to deploy Keystone
 
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
-
 .. toctree::
    :hidden:
 
