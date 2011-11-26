@@ -8,7 +8,7 @@ of my ``Documents`` directory, written as ``~/Documents/keystone``.
 Inside that directory, I'll create my first web page in a file named
 ``index.ks``:
 
-.. code-block:: html
+.. code-block:: keystone
 
     <!doctype html>
     <html>

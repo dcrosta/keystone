@@ -14,7 +14,7 @@ stored and edited together in ``.ks`` files. The Python section comes first
 separator (``----``), followed by `Jinja <http://jinja.pocoo.org/>`_
 template code. Here's a relatively complete example:
 
-.. code-block:: html+jinja
+.. code-block:: keystone
 
     import db
 
