@@ -45,7 +45,7 @@ browser, and you should see your page:
 It's not very exciting so far, but we'll get there. First, let's add some
 links and additional pages. Edit ``index.ks`` so that it looks like this:
 
-.. code-block:: html
+.. code-block:: keystone
 
     <!doctype html>
     <html>
@@ -65,7 +65,7 @@ which becomes:
 
 And then create ``pageone.ks``:
 
-.. code-block:: html
+.. code-block:: keystone
 
     <!doctype html>
     <html>
