@@ -52,28 +52,58 @@ class ThreeOhX(HTTPException):
         return '<p>%s: <a href="%s">%s</a></p>' % (self.message, self.location, self.location)
 
 class MovedPermanently(ThreeOhX):
+    """`301 Moved Permanently`
+
+    Raise if the resource has moved, and the user agent should always
+    redirect the user to the new location.
+    """
     code = 301
     message = 'Moved Permanently'
 
 class Found(ThreeOhX):
+    """`302 Found`
+
+    Raise if the resource has moved, but the user agent should request
+    this request URI again in the future.
+    """
     code = 302
     message = 'Found'
 
 class SeeOther(ThreeOhX):
+    """`303 See Other`
+
+    Raise if the response to the request can be found at another location,
+    usually sent after successfully processing a ``POST`` request.
+    """
     code = 303
     message = 'See Other'
 
 class NotModified(HTTPException):
+    """`304 Not Modified`
+
+    Sent in response to a conditional GET request when the user agent's
+    cached copy is already up to date.
+    """
     code = 304
     description = None
 
 class UseProxy(ThreeOhX):
+    """`305 Use Proxy`
+
+    Indicate that the user-agent should retry the request using the proxy as
+    defined in the ``Location`` header.
+    """
     code = 305
     description = 'Use Proxy'
 
 # 306 is unused
 
 class TemporaryRedirect(ThreeOhX):
+    """`307 Temporary Redirect`
+
+    Raise if the resource may have moved, and to indicate that  the user
+    agent should request this request URI again in the future.
+    """
     code = 307
     description = 'Temporary Redirect'
 

@@ -5,137 +5,202 @@ This quickstart guide is designed for those familiar with Python and web
 programming concepts. If you're new to Python or web programming, you may be
 interested in :doc:`tutorial`, which introduces these concepts more gently.
 
-Keystone Main Idea
-------------------
+Install Keystone
+----------------
 
-In Keystone, rather than separating view code from template code, both are
-stored and edited together in ``.ks`` files. The Python section comes first
-(since the view code executes first), followed by four hyphens as a
-separator (``----``), followed by `Jinja <http://jinja.pocoo.org/>`_
-template code. Here's a relatively complete example:
+Keystone packages are available at `PyPi
+<http://pypi.python.org/pypi/Keystone>`_ and source is available at `GitHub
+<https://github.com/dcrosta/keystone>`_. Keystone can be installed with
+`Pip <http://www.pip-installer.org/en/latest/index.html>`_, and works well
+with `virtualenv <http://pypi.python.org/pypi/virtualenv>`_.
+
+
+Application Directory
+---------------------
+
+Keystone uses the hierarchy of the filesystem, specifically of your
+`application directory`, for view routing. Throughout this Quickstart, we
+will use ``$APP`` to refer to the root of your application directory.
+
+
+Running Keystone
+----------------
+
+The ``keystone`` script runs a local web server suitable for development of
+Keystone applications. By default it listens on port 5000 and assumes
+``$APP`` to be the current working directory. Run ``keystone --help`` for
+details on usage.
+
+
+Defining Views
+--------------
+
+Views in Keystone are files with extension ``.ks``, and contain both Python
+code and `Jinja <http://jinja.pocoo.org/>`_ template code, separated by four
+hyphens (``----``). If a view does not have a separator, it is assumed to
+contain only template code and no Python.
+
+The URL of a Keystone view is the path, relative to ``$APP``, of the file in
+question, without the ``.ks`` extension. Views named ``index.ks`` are
+treated specially, in that they are accessible both by their full path
+(ending in `/index`) and at the bare directory path (ending in `/`).
+
+Here's an example view:
 
 .. code-block:: keystone
 
-    import db
-
-    from wtforms import *
-    from wtforms.validators import *
-
-    class SignupForm(Form):
-        username = TextField(validators=[Required()])
-        email = TextField(validators=[Email()])
-        password = PasswordField(validators=[Length(min=6)])
-        confirm_password = PasswordField(validators=[EqualTo('password')])
-
-        def validate_username(form, field):
-            if not db.username_available(form.username.data):
-                raise ValidationError('Username taken')
-
-    if request.method == 'POST':
-        form = SignupForm(request.form)
-        if form.validate():
-            db.create_user(
-                username=form.username.data,
-                email=form.email.data,
-                password=form.password.data,
-            )
-    else:
-        form = SignupForm()
+    import random
+    greeting = random.choice(['Hello', 'Goodbye'])
+    name = random.choice(['World', 'Moon'])
     ----
-    {% macro field_row(field) %}
-    <tr>
-        <td>{{field.label}}</td>
-        <td>{{field}}
-            {% if field.errors %}
-            <ul class="errors">
-                {% for err in field.errors %}
-                <li>{{err}}</li>
-                {% endfor %}
-            </ul>
-            {% endif %}
-        </td>
-    {% endmacro %}
     <!doctype html>
     <html>
         <head>
-            <title>My Great Site</title>
-            <link rel="stylesheet" href="/static/style.css"/>
+            <title>{{greeting}} from Keystone</title>
         </head>
         <body>
-            <div id="main">
-                <h1>Sign Up!</h1>
-                <form method="POST">
-                    <table>
-                        {% for field in form %}
-                        {{field_row(field)}}
-                        {% endfor %}
-                        <tr>
-                            <td>&nbsp;</td>
-                            <td><input type="submit"/></td>
-                        </tr>
-                    </table>
-                </form>
-            </div>
+            <h1>{{greeting}}, {{name}}</h1>
         </body>
     </html>
 
-Any static files found within the Keystone application directory are served
-verbatim. Files whose detected content type matches ``text/*`` (including
-the rendered output of ``.ks`` templates) are served with charset utf-8 and
-an appropriate MIME type in the HTTP Content-Type header.
+If this were saved as :file:`{$APP}/index.ks`, then this view would be
+available at both `http://localhost:5000/` and
+`http://localhost:5000/index`.
 
-.. note::
-   Files with extensions ``.ks``, ``.py``, ``.pyc``, and ``.pyo`` are never
-   served as static files by Keystone.
+HTTP Request
+------------
+
+Keystone makes a ``request`` object available to your view code, with
+several useful attributes and methods:
+
+.. py:class:: Request
+
+   A Werkzeug :class:`~werkzeug.wrappers.Request` instance, available in
+   views as ``request``.
+
+   .. py:attribute:: method
+
+      HTTP method name
+
+   .. py:attribute:: cookies
+
+      HTTP cookies, as an
+      :class:`~werkzeug.datastructures.ImmutableTypeConversionDict`
+
+   .. py:attribute:: args
+
+      HTTP GET parameters (query string), as an
+      :class:`~werkzeug.datastructures.ImmutableMultiDict`
+
+   .. py:attribute:: form
+
+      HTTP POST parameters, as an
+      :class:`~werkzeug.datastructures.ImmutableMultiDict`
+
+   .. py:attribute:: values
+
+      Union of ``args`` and ``form``.
 
 
-Keystone and Python
+HTTP Response
+-------------
+
+The actual :class:`~werkzeug.wrappers.Response` instance is not constructed
+until after a view's Python code executes, but aspects of it can be
+controlled through several :doc:`view-variables`:
+
+.. py:class:: Headers
+
+   A Werkzeug :class:`~werkzeug.datastructures.Headers` instance, available
+   in views as ``headers``.
+
+   .. py:method:: add(key, value, **kw)
+
+      Add the ``value`` to the header named ``key``. Keyword arguments can
+      be used to specify additional parameters for the header:
+
+      .. code-block:: python
+
+         headers.add('Content-Type', 'text/plain')
+         headers.add('Content-Disposition', 'attachment', filename='blah.txt')
+
+   .. py:method:: set(key, value, **kw)
+
+      Similar to :meth:`add`, but overwrites any previously set values for
+      headers which accept multiple values.
+
+   .. py:method:: get(key, default=None, type=None)
+
+      Get the value of the header named ``key``, or the default value if no
+      such header is set. Optionally convert using ``type`` (a callable of
+      one argument).
+
+   .. py:method:: has_key(key)
+
+      Return ``True`` if the header named ``key`` exists, ``False``
+      otherwise.
+
+
+You can also set or delete cookies:
+
+.. py:method:: set_cookie(key, value='', max_age=None, expires=None, path='/', domain=None, seucre=None, httponly=None)
+
+   See :meth:`~werkzeug.wrappers.BaseResponse.set_cookie` in the Werkzeug
+   documentation.
+
+.. py:method:: delete_cookie(key, path='/', domain=None)
+
+   See :meth:`~werkzeug.wrappers.BaseResponse.delete_cookie` in the Werkzeug
+   documentation.
+
+
+Non-200 Responses
+~~~~~~~~~~~~~~~~~
+
+A full suite of Exceptions corresponding to non-200 HTTP status codes are
+available in the :doc:`http-errors`. To send a non-200 response, raise the
+appropriate exception.
+
+
+Parameterized Paths
 -------------------
 
-Keystone compiles and caches Python bytecode for the view section and
-executes it for each request. The application directory is added to the
-Python import path when Keystone starts up, so any Python modules or
-packages defined within the application are available for import.
+Any directory or Keystone view file whose name begins with ``%`` defines a
+parameterized path, and acts like a wildcard. Any requests to URLs which
+match a parameterized path have :doc:`view-variables` defined for the
+matched sections of the path. Such variables are always strings.
 
-All Python code in the ``.ks`` file is executed on each request, including
-things which would normally be executed only once by the Python virtual
-machine, like function and class definitions. Therefore, it is advisable to
-avoid defining classes or functions within ``.ks`` files. Instead, most
-Python code (particularly anything that may be shared between different
-views, such as class and function definitions, database connections, etc)
-should be implemented in ordinary Python modules or packages.
+For example, suppose you have the following application directory::
 
-When a change in any ``.ks`` file's mtime is detected, cached bytecode is
-discarded and the file is re-parsed. Python modules imported by view code
-are not re-imported unless the Python process running Keystone is restarted.
+   $APP/
+      + index.ks
+      + account/
+         + %username.ks
+         + %username.ks
+         + %username/
+            + profile.ks
 
-When Keystone is started, if ``startup.py`` exists within the application
-directory, it is imported. This is where application-level initialization
-code should go (for instance, setting up database connection pools). Like
-any Python module imported from within Keystone views, the ``startup``
-module is imported (and thus executed) only once.
+Then requests to the following paths would map as follows:
+
+`/` or `/index`
+  :file:`{$APP}/index.ks`
+
+`/account/` or `/account/index`
+  :file:`{$APP}/account/index.ks`
+
+`/account/alice` or `/account/bob`
+  :file:`{$APP}/account/%username.ks` with variable ``username`` set to
+  "alice" or "bob", respectively
+
+`/account/alice/profile` or `/account/bob/profile`
+  :file:`{$APP}/account/%username/profile.ks` with variable ``username`` set to
+  "alice" or "bob", respectively
 
 
-Keystone and Jinja
-------------------
+Application Initialization
+--------------------------
 
-All in-scope Python variables, including :doc:`/view-variables` set by
-Keystone itself, are passed into the Jinja2 context during rendering.
-However, it is not advised to maipulate the :doc:`/view-variables` from
-within template code, as this will lead to difficult-to-maintain code.
-
-Keystone implements a special Jinja2 template loader to load templates from
-``.ks`` files. In addition, it can load plain HTML files (with extension
-``.html``) found within the application directory (e.g. for template
-inheritance).
-
-If a view's template extends the template of another view, the parent view's
-Python code `is not` executed during the request; thus if you require
-certain template variables in a parent template, the child view must set
-them itself.
-
-`Template filters <http://jinja.pocoo.org/docs/api/#custom-filters>`_ can be
-registered with the Jinja Environment using the ``@template_filter``
-decorator (imported from ``keystone.render``). The name of the function is
-used as the filter name within the Jinja environment.
-
+If a file :file:`{$APP}/startup.py` exists, it will be imported as a normal
+Python module when Keystone starts up. Use this hook to define shared
+resources (like database connections), perform application initialization,
+or tweak Keystone's behavior (like registering custom template filters).
