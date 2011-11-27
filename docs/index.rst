@@ -27,7 +27,7 @@ Documentation Sections
 :doc:`advanced`
   Advanced topics
 
-:doc:`deployment`
+:doc:`deploying-keystone`
   How to deploy Keystone
 
 .. toctree::
@@ -37,4 +37,4 @@ Documentation Sections
    quickstart
    view-variables
    advanced
-   deployment
+   deploying-keystone
