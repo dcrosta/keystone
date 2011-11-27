@@ -92,99 +92,16 @@ it is served with charset UTF-8.
    will be in a future version of Keystone.
 
 
-HTTP Request
-------------
+HTTP Request and Response
+-------------------------
 
 Keystone makes a ``request`` object available to your view code, with
-several useful attributes and methods:
+several useful attributes and methods. Full documentation on the ``Request``
+object is available in :doc:`view-variables`.
 
-.. py:class:: Request
-
-   A Werkzeug :class:`~werkzeug.wrappers.Request` instance, available in
-   views as ``request``.
-
-   .. py:attribute:: method
-
-      HTTP method name
-
-   .. py:attribute:: cookies
-
-      HTTP cookies, as an
-      :class:`~werkzeug.datastructures.ImmutableTypeConversionDict`
-
-   .. py:attribute:: args
-
-      HTTP GET parameters (query string), as an
-      :class:`~werkzeug.datastructures.ImmutableMultiDict`
-
-   .. py:attribute:: form
-
-      HTTP POST parameters, as an
-      :class:`~werkzeug.datastructures.ImmutableMultiDict`
-
-   .. py:attribute:: values
-
-      Union of ``args`` and ``form``.
-
-
-HTTP Response
--------------
-
-The actual :class:`~werkzeug.wrappers.Response` instance is not constructed
-until after a view's Python code executes, but aspects of it can be
-controlled through several :doc:`view-variables`:
-
-.. py:class:: Headers
-
-   A Werkzeug :class:`~werkzeug.datastructures.Headers` instance, available
-   in views as ``headers``.
-
-   .. py:method:: add(key, value, **kw)
-
-      Add the ``value`` to the header named ``key``. Keyword arguments can
-      be used to specify additional parameters for the header:
-
-      .. code-block:: python
-
-         headers.add('Content-Type', 'text/plain')
-         headers.add('Content-Disposition', 'attachment', filename='blah.txt')
-
-   .. py:method:: set(key, value, **kw)
-
-      Similar to :meth:`add`, but overwrites any previously set values for
-      headers which accept multiple values.
-
-   .. py:method:: get(key, default=None, type=None)
-
-      Get the value of the header named ``key``, or the default value if no
-      such header is set. Optionally convert using ``type`` (a callable of
-      one argument).
-
-   .. py:method:: has_key(key)
-
-      Return ``True`` if the header named ``key`` exists, ``False``
-      otherwise.
-
-
-You can also set or delete cookies:
-
-.. py:method:: set_cookie(key, value='', max_age=None, expires=None, path='/', domain=None, seucre=None, httponly=None)
-
-   See :meth:`~werkzeug.wrappers.BaseResponse.set_cookie` in the Werkzeug
-   documentation.
-
-.. py:method:: delete_cookie(key, path='/', domain=None)
-
-   See :meth:`~werkzeug.wrappers.BaseResponse.delete_cookie` in the Werkzeug
-   documentation.
-
-
-Non-200 Responses
-~~~~~~~~~~~~~~~~~
-
-A full suite of Exceptions corresponding to non-200 HTTP status codes are
-available in the :doc:`http-errors`. To send a non-200 response, raise the
-appropriate exception.
+The response object is not actually available to Keystone views, but several
+objects and functions to control aspects of the response are. These, too,
+are fully documented in :doc:`view-variables`.
 
 
 Parameterized Paths
