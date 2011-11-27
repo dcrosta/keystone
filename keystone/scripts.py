@@ -40,7 +40,7 @@ def main():
     parser.add_argument('-d', '--debug', dest='debug', action='store_const', const=False, default=True,
                         help='Display Python tracebacks in the browser [False]')
 
-    parser.add_argument('--configure', dest='paas', action='store', choices=['heroku', 'dotcloud', 'epio'],
+    parser.add_argument('--configure', dest='paas', action='store', choices=['wsgi', 'heroku', 'dotcloud', 'epio'],
                         help='Set up configuration files in app_dir for PaaS services')
 
     args = parser.parse_args()
@@ -92,6 +92,12 @@ def configure(args):
 
     if args.paas in ('heroku', 'dotcloud', 'epio'):
         ensure_line('requirements.txt', 'keystone == %s' % keystone.__version__)
+
+    if args.paas == 'wsgi':
+        ensure_line('wsgi.py', 'from os.path import abspath, dirname')
+        ensure_line('wsgi.py', 'here = abspath(dirname(__file__))')
+        ensure_line('wsgi.py', 'from keystone.main import Keystone')
+        ensure_line('wsgi.py', 'application = Keystone(here)')
 
     if args.paas == 'heroku':
         ensure_line('requirements.txt', 'gunicorn >= 0.13.4')
