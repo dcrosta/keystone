@@ -84,7 +84,6 @@ class Keystone(object):
             'request': request,
             'http': http,
             'headers': response.headers,
-            'cookies': request.cookies,
             'set_cookie': response.set_cookie,
             'delete_cookie': response.delete_cookie,
             'return_response': return_response,
