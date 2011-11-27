@@ -54,8 +54,6 @@ class Keystone(object):
         try:
             import startup
         except ImportError:
-            import traceback
-            traceback.print_exc()
             pass
 
     def __call__(self, environ, start_response):
