@@ -132,6 +132,8 @@ class Keystone(object):
         # first: see if an exact match exists
         fspath = os.path.abspath(os.path.join(self.app_dir, path))
         if os.path.exists(fspath):
+            if os.path.basename(fspath).startswith('_'):
+                return None
             return file(fspath, 'rb')
 
         # next: see if an exact path match with
