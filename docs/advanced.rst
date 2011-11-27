@@ -23,7 +23,7 @@ iterable type (list, generator, file object) which yields strings.
 
 .. note::
 
-   As of Keystone 0.2, you must still have a template section in your
+   As of Keystone |version|, you must still have a template section in your
    ``.ks`` file when using :func:`return_response()`, though it may be
    kmpty. This may change in a future version of Keystone.
 

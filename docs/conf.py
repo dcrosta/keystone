@@ -49,7 +49,7 @@ copyright = u'2011, Dan Crosta'
 #
 # The short X.Y version.
 from keystone import __version_info__ as vtuple
-version = '.'.join(map(str, vtuple[:1]))
+version = '.'.join(map(str, vtuple[:2]))
 # The full version, including alpha/beta/rc tags.
 release = '.'.join(map(str, vtuple))
 
