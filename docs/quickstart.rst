@@ -67,6 +67,31 @@ If this were saved as :file:`{$APP}/index.ks`, then this view would be
 available at both `http://localhost:5000/` and
 `http://localhost:5000/index`.
 
+
+Static Files
+------------
+
+Most files other than ``.ks`` files are served as static files by Keystone.
+The HTTP `Content-Type` header is set according to the MIME type guessed by
+:func:`mimetypes.guess_type`, and if the MIME type begins with "``text/``",
+it is served with charset UTF-8.
+
+.. note::
+
+   Files with extension ``.py``, ``.pyc``, ``.pyo``, ``.ks``,
+   and any file whose name begins with an underscore are never served as
+   static files by Keystone. Requests for such files will receive a 404
+   response even if such a file exists.
+
+.. note::
+
+   Keystone makes all static responses cacheable by setting the
+   `Last-Modified` header to the file's :func:`mtime <os.stat>`, `ETag` to
+   the MD5 hex digest of the `mtime`, and a `Expires` to 1 day from the
+   current date and time. This behavior is not yet easily customizable, but
+   will be in a future version of Keystone.
+
+
 HTTP Request
 ------------
 
