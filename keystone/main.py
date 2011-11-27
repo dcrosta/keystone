@@ -88,7 +88,7 @@ class Keystone(object):
             'cookies': request.cookies,
             'set_cookie': response.set_cookie,
             'delete_cookie': response.delete_cookie,
-            'respond_with': respond_with,
+            'return_response': return_response,
         }
 
         try:

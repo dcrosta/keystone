@@ -24,7 +24,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 
-__all__ = ('respond_with', 'template_filter', 'Template',
+__all__ = ('return_response', 'template_filter', 'Template',
            'RenderEngine', 'InvalidTemplate')
 
 import compiler
@@ -38,11 +38,11 @@ class InvalidTemplate(Exception):
     """Indicates that a template has more than one separator."""
 
 class StopViewFunc(Exception):
-    """Raised by respond_with() to prevent templat rendering."""
+    """Raised by return_response() to prevent templat rendering."""
     def __init__(self, body):
         self.body = body
 
-def respond_with(body):
+def return_response(body):
     """Passed into viewlocals to allow view code to immediately
     respond, bypassing templates (e.g. to return binary content
     from a file or database).
