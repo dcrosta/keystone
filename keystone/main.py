@@ -78,8 +78,7 @@ class Keystone(object):
 
 
     def render_keystone(self, request, template):
-        response = Response()
-        response.headers.set('Content-Type', 'text/html')
+        response = Response(mimetype='text/html')
 
         viewlocals = {
             'request': request,
@@ -104,14 +103,10 @@ class Keystone(object):
 
         content_type, _ = mimetypes.guess_type(fileobj.name)
 
-        if content_type.startswith('text/'):
-            content_type = '%s; charset=utf-8' % content_type
-
         stat = os.stat(fileobj.name)
         etag = hashlib.md5(str(stat.st_mtime)).hexdigest()
 
-        response = Response(fileobj)
-        response.content_type = content_type
+        response = Response(fileobj, mimetype=content_type)
         response.content_length = stat.st_size
         response.add_etag(etag)
         response.last_modified = datetime.utcfromtimestamp(stat.st_mtime)
