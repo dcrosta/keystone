@@ -88,6 +88,7 @@ class Keystone(object):
             'set_cookie': response.set_cookie,
             'delete_cookie': response.delete_cookie,
             'return_response': return_response,
+            'app_dir': self.app_dir,
         }
 
         try:
