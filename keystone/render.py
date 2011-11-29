@@ -31,8 +31,6 @@ import compiler
 from compiler.ast import Import, From
 import jinja2
 import os, os.path
-import re
-import sys
 
 class InvalidTemplate(Exception):
     """Indicates that a template has more than one separator."""
@@ -154,7 +152,6 @@ class RenderEngine(object):
         template = self.templates.get(name)
 
         if template is None or template.mtime < mtime:
-            lastmtime = mtime
             template = self.parse(file(filename, 'rb'))
             template.mtime = mtime
             template.name = name
