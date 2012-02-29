@@ -112,8 +112,6 @@ class RenderEngine(object):
             viewfunc=viewfunc,
             body=''.join(second))
 
-        return viewfunc, ''.join(second)
-
     def compile(self, viewcode_str, filename):
         """Compile the view code and return a code object
         and dictionary of globals needed by the code object.
