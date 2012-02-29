@@ -243,18 +243,14 @@ class CompilerTest(unittest.TestCase):
             self.assertTrue(name in viewglobals, 'view globals did not contain from foo import * (%s)')
 
 
-    def test_non_existent_import_doesnt_fail_during_compile(self):
+    def test_non_existent_import_fails_during_compile(self):
         viewcode_str = dedent("""
         import froobulator
         """)
 
         engine = RenderEngine(MockApp())
-        viewcode, viewglobals = engine.compile(viewcode_str, 'filename')
+        self.assertRaises(ImportError, engine.compile, viewcode_str, 'filename')
 
-        # this passes if no exception is raised
-        #
-        # however, this will pass for the wrong reasons if a module
-        # named "froobulator" is on sys.path. I'm OK with that.
 
 class TestRenderEngine(unittest.TestCase):
     """
