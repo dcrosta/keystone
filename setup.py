@@ -33,6 +33,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=REQUIRES,
+    test_suite='test',
     packages=find_packages(),
     entry_points={
         'console_scripts': [
