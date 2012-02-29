@@ -35,6 +35,9 @@ import os, os.path
 class InvalidTemplate(Exception):
     """Indicates that a .ks template has more than one separator."""
 
+class TemplateNotFound(Exception):
+    """Indicates that a .ks template by the given name does not exist."""
+
 class StopViewFunc(Exception):
     """Raised by return_response() to prevent templat rendering."""
     def __init__(self, body):
@@ -146,6 +149,9 @@ class RenderEngine(object):
         and template body for the .ks template at the given
         path relative to the app_dir."""
         filename = os.path.abspath(os.path.join(self.app.app_dir, name))
+        if not os.path.isfile(filename):
+            raise TemplateNotFound('could not find template %s' % name)
+
         mtime = os.stat(filename).st_mtime
         template = self.templates.get(name)
 
