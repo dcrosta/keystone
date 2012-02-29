@@ -93,6 +93,8 @@ class Keystone(object):
             response.response = self.engine.render(template, viewlocals)
         except HTTPException, ex:
             return ex.get_response(request.environ)
+        except:
+            raise http.InternalServerError()
 
         return response
 
