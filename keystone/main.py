@@ -76,7 +76,6 @@ class Keystone(object):
             # TODO: error handler hooks
             return httpe.get_response(request.environ)
 
-
     def render_keystone(self, request, template):
         response = Response(mimetype='text/html')
 
