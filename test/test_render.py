@@ -320,5 +320,19 @@ class TestRenderEngine(unittest.TestCase):
 
         self.assertTrue(template1 is not template2, 'template should not be the same after file changes')
 
+    def test_full_render(self):
+        engine = RenderEngine(MockApp(self.app_dir))
+        filename = os.path.join(self.app_dir, 'tmpl.ks')
 
+        with file(filename, 'w') as fp:
+            fp.write(dedent("""
+            <strong>this is {{name}}</strong>
+            """))
+
+        t = engine.get_template('tmpl.ks')
+        output = engine.render(t, {'name': 'HTML'})
+        if callable(getattr(output, 'next', None)):
+            output = '\n'.join(output)
+
+        self.assertEquals('<strong>this is HTML</strong>', output)
 
