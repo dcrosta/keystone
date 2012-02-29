@@ -29,10 +29,11 @@ import os
 import os.path
 import shutil
 import re
-import time
 import unittest
 from inspect import iscode, isfunction, getargspec
 from StringIO import StringIO
+
+import util
 
 from keystone.render import Template
 from keystone.render import InvalidTemplate
@@ -289,7 +290,9 @@ class TestRenderEngine(unittest.TestCase):
         engine = RenderEngine(MockApp(self.app_dir))
         filename = os.path.join(self.app_dir, 'tmpl.ks')
 
-        with file(filename, 'w') as fp:
+        changer = util.MtimeChanger()
+
+        with changer.change_times(file(filename, 'w')) as fp:
             fp.write(dedent("""
             # this is python
             ----
@@ -298,19 +301,12 @@ class TestRenderEngine(unittest.TestCase):
 
         template1 = engine.get_template('tmpl.ks')
 
-        # modify the atime and mtime on the file if
-        # possible, otherwise just wait a bit and
-        # then write to the file again
-        if callable(getattr(os, 'utime')):
-            os.utime(filename, (time.time() + 2, time.time() + 2))
-        else:
-            time.sleep(1)
-            with file(os.path.join(self.app_dir, 'tmpl.ks'), 'w') as fp:
-                fp.write(dedent("""
-                # this is python
-                ----
-                <strong>this is HTML</strong>
-                """))
+        with changer.change_times(file(filename, 'w')) as fp:
+            fp.write(dedent("""
+            # this is python
+            ----
+            <strong>this is HTML</strong>
+            """))
 
         template2 = engine.get_template('tmpl.ks')
 
