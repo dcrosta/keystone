@@ -23,6 +23,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from __future__ import with_statement
+
 import os
 import os.path
 import shutil
@@ -109,10 +111,10 @@ class ParserTest(unittest.TestCase):
         viewfunc, body = template.viewfunc, template.body
 
         self.assertTrue(isfunction(viewfunc), 'viewfunc is not a function')
-        self.assertEquals(len(getargspec(viewfunc).args), 1, 'viewfunc should take only 1 argument')
-        self.assertTrue(getargspec(viewfunc).varargs is None, 'viewfunc should take no varargs')
-        self.assertTrue(getargspec(viewfunc).keywords is None, 'viewfunc should take no kwargs')
-        self.assertTrue(getargspec(viewfunc).defaults is None, 'viewfunc should have no defaults')
+        self.assertEquals(len(getargspec(viewfunc)[0]), 1, 'viewfunc should take only 1 argument')
+        self.assertTrue(getargspec(viewfunc)[1] is None, 'viewfunc should take no varargs')
+        self.assertTrue(getargspec(viewfunc)[2] is None, 'viewfunc should take no kwargs')
+        self.assertTrue(getargspec(viewfunc)[3] is None, 'viewfunc should have no defaults')
 
         self.assertEquals(body, '<strong>this is HTML</strong>\n', 'template body is incorrect')
 
