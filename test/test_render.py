@@ -293,7 +293,7 @@ class TestRenderEngine(unittest.TestCase):
         engine = RenderEngine(MockApp(self.app_dir))
         filename = os.path.join(self.app_dir, 'tmpl.ks')
 
-        with file(os.path.join(self.app_dir, 'tmpl.ks'), 'w') as fp:
+        with file(filename, 'w') as fp:
             fp.write(dedent("""
             # this is python
             ----
