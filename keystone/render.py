@@ -33,7 +33,7 @@ import jinja2
 import os, os.path
 
 class InvalidTemplate(Exception):
-    """Indicates that a template has more than one separator."""
+    """Indicates that a .ks template has more than one separator."""
 
 class StopViewFunc(Exception):
     """Raised by return_response() to prevent templat rendering."""
