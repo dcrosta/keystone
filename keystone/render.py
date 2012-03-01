@@ -48,6 +48,8 @@ def return_response(body):
     respond, bypassing templates (e.g. to return binary content
     from a file or database).
     """
+    if isinstance(body, basestring):
+        body = (body, )
     raise StopViewFunc(body)
 
 def template_filter(func):
