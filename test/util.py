@@ -30,7 +30,7 @@ import time
 
 class MtimeChanger(object):
     def __init__(self):
-        self.inc = 0
+        self.inc = 1
 
     @contextlib.contextmanager
     def change_times(self, fileobj):
