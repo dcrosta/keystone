@@ -326,3 +326,52 @@ class TestRenderEngine(unittest.TestCase):
 
         self.assertEquals('<strong>this is HTML</strong>', output)
 
+    def test_render_with_template_hierarchy(self):
+        with file(os.path.join(self.app_dir, 'base.html'), 'w') as fp:
+            fp.write(dedent("""
+            {% block main %}
+            <strong>this is the base</strong>
+            {% endblock %}
+            <strong>this is also the base</strong>
+            """))
+
+        with file(os.path.join(self.app_dir, 'tmpl.ks'), 'w') as fp:
+            fp.write(dedent("""
+            {% extends "base.html" %}
+            {% block main %}
+            <strong>this is the child</strong>
+            {% endblock %}
+            """))
+
+        engine = RenderEngine(MockApp(self.app_dir))
+        t = engine.get_template('tmpl.ks')
+        output = '\n'.join(engine.render(t, {}))
+
+        self.assertEquals('\n<strong>this is the child</strong>\n\n\n<strong>this is also the base</strong>', output)
+
+        with file(os.path.join(self.app_dir, 'tmpl2.ks'), 'w') as fp:
+            fp.write(dedent("""
+            {% extends "_base.html" %}
+            {% block main %}
+            <strong>this is the child</strong>
+            {% endblock %}
+            """))
+
+        t = engine.get_template('tmpl2.ks')
+        generator = engine.render(t, {})
+        self.assertRaises(TemplateNotFound, generator.next)
+        del generator
+
+        with file(os.path.join(self.app_dir, '_base.html'), 'w') as fp:
+            fp.write(dedent("""
+            {% block main %}
+            <strong>this is the base</strong>
+            {% endblock %}
+            <strong>this is the new base</strong>
+            """))
+
+        t = engine.get_template('tmpl2.ks')
+        output = '\n'.join(engine.render(t, {}))
+
+        self.assertEquals('\n<strong>this is the child</strong>\n\n\n<strong>this is the new base</strong>', output)
+
