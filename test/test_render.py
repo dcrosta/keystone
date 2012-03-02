@@ -322,9 +322,7 @@ class TestRenderEngine(unittest.TestCase):
             """))
 
         t = engine.get_template('tmpl.ks')
-        output = engine.render(t, {'name': 'HTML'})
-        if callable(getattr(output, 'next', None)):
-            output = '\n'.join(output)
+        output = '\n'.join(engine.render(t, {'name': 'HTML'}))
 
         self.assertEquals('<strong>this is HTML</strong>', output)
 
