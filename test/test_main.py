@@ -367,3 +367,22 @@ class KeystoneTest(unittest.TestCase):
 
         self.assertTrue('startup' in sys.modules, 'startup.py was not loaded')
         self.assertEqual(sys.modules['startup'].__file__, startup, 'wrong startup.py was loaded')
+
+    def test_template_filters(self):
+        with file(os.path.join(self.app_dir, 'startup.py'), 'w') as fp:
+            fp.write('from keystone.render import template_filter\n')
+            fp.write('@template_filter\n')
+            fp.write('def silly(value):\n')
+            fp.write('    return "silly"\n')
+
+        with file(os.path.join(self.app_dir, 'index.ks'), 'w') as fp:
+            fp.write('{{novar|silly}}')
+
+        app = Keystone(self.app_dir)
+        req = Request(wsgi_environ('GET', '/'))
+
+        response = app.dispatch(req)
+        output = ''.join(response.response)
+        self.assertTrue(isinstance(response, BaseResponse))
+        self.assertEqual(output, 'silly')
+
