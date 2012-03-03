@@ -1,6 +1,6 @@
 .*.swp
 *.pyc
-distribute-*-py2.7.egg
+distribute-*.egg
 distribute-*.tar.gz
 keystone.egg-info
 dist
