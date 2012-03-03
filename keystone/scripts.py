@@ -41,6 +41,8 @@ def main():
                         help='Use threads for concurrency; always False if -d/--debug is set [False]')
     parser.add_argument('-d', '--debug', dest='debug', action='store_const', const=False, default=True,
                         help='Display Python tracebacks in the browser [False]')
+    parser.add_argument('-e', '--static-expires', dest='static_expires', action='store', default=86400, type=int,
+                        help='Serve static files with expiry of STATIC_EXPIRES seconds [86400]')
 
     parser.add_argument('--configure', dest='paas', action='store', choices=['wsgi', 'heroku', 'dotcloud', 'epio'],
                         help='Set up configuration files in app_dir for PaaS services')
@@ -48,11 +50,11 @@ def main():
     args = parser.parse_args()
 
     if args.paas:
-        return configure(args)
+        return configure(parser, args)
 
-    return serve(args)
+    return serve(parser, args)
 
-def serve(args):
+def serve(parser, args):
     from keystone.main import Keystone
     import werkzeug.serving
 
@@ -64,7 +66,11 @@ def serve(args):
     if args.debug:
         args.threaded = False
 
-    app = Keystone(app_dir=args.app_dir)
+    extra = {}
+    if args.static_expires:
+        extra['static_expires'] = int(args.static_expires)
+
+    app = Keystone(app_dir=args.app_dir, **extra)
     return werkzeug.serving.run_simple(
         hostname=args.host,
         port=args.port,
@@ -75,7 +81,7 @@ def serve(args):
         threaded=args.threaded,
     )
 
-def configure(args):
+def configure(parser, args):
     import keystone
 
     def ensure_line(filename, line, mode='a'):
