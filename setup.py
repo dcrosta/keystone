@@ -34,7 +34,7 @@ setup(
     ],
     install_requires=REQUIRES,
     test_suite='test',
-    packages=find_packages(),
+    packages=['keystone'],
     entry_points={
         'console_scripts': [
             'keystone = keystone.scripts:main',
