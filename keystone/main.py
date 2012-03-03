@@ -41,7 +41,8 @@ from keystone.render import *
 
 # requests for paths ending in these extensions
 # will be rejected with status 404
-HIDDEN_EXTS = ('.ks', '.py', '.pyc', '.pyo')
+HIDDEN_EXTS = set(('.ks', '.py', '.pyc', '.pyo'))
+HIDDEN_PREFIXES = set(('.', '_'))
 
 class Keystone(object):
 
@@ -136,7 +137,8 @@ class Keystone(object):
 
         # first: see if an exact match exists
         if os.path.isfile(fspath):
-            if os.path.basename(fspath).startswith('_'):
+            filename = os.path.basename(fspath)
+            if any(filename.startswith(pre) for pre in HIDDEN_PREFIXES):
                 return None
             return file(fspath, 'rb')
 

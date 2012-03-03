@@ -241,6 +241,10 @@ class KeystoneTest(unittest.TestCase):
             '%widlcard.ks': '----\n{{wildcard}}',
             'file.txt': 'file 1',
             '_base.html': 'hello',
+            'something.py': '# blah',
+            'something.pyc': '# blah',
+            'something.pyo': '# blah',
+            '.dotfile': 'dotfile',
             'subdir': {
                 'index.ks': 'subdir index',
                 'pageA.ks': 'subdir pageA',
@@ -278,14 +282,18 @@ class KeystoneTest(unittest.TestCase):
             {'path': '/index', 'type': Template, 'body': 'index'},
             {'path': '/index.ks', 'type': type(None)},
 
+            {'path': '/something.py', 'type': type(None)},
+            {'path': '/something.pyc', 'type': type(None)},
+            {'path': '/something.pyo', 'type': type(None)},
+            {'path': '/_base.html', 'type': type(None)},
+            {'path': '/.dotfile', 'type': type(None)},
+
             {'path': '/pageA', 'type': Template, 'body': 'pageA'},
 
             {'path': '/somePage', 'type': Template, 'body': '{{wildcard}}'},
             {'path': '/anotherPage', 'type': Template, 'body': '{{wildcard}}'},
 
             {'path': '/file.txt', 'type': file, 'contents': 'file 1'},
-
-            {'path': '/_base.html', 'type': type(None)},
 
             # TODO: not sure that this is what we should be returning
             # here. options are:
