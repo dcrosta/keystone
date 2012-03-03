@@ -27,6 +27,7 @@ import contextlib
 import os
 import os.path
 import time
+import warnings
 
 class MtimeChanger(object):
     def __init__(self):
@@ -60,4 +61,30 @@ class MtimeChanger(object):
                 fp = open(filename, 'a')
                 fp.write('')
                 fp.close()
+
+class WarningCatcher(object):
+    """
+    Context manager like warnings.catch_warnings, but with a simpler API
+    for testing (and for Python 2.5 compatibility).
+    """
+
+    def __init__(self, *warnings_to_catch):
+        self.warnings_to_catch = warnings_to_catch
+        self.log = []
+        self.showwarning = None
+
+    def __enter__(self):
+        self.showwarning = warnings.showwarning
+        def showwarning(*args, **kwargs):
+            # args[1] is the class of the warning
+            self.log.append(args[1])
+        warnings.showwarning = showwarning
+        return self
+
+    def __exit__(self, *exc_info):
+        warnings.showwarning = self.showwarning
+
+    def has_warning(self, warning_cls, count=1):
+        count_of_type = sum(1 for w in self.log if w == warning_cls)
+        return count_of_type == count
 

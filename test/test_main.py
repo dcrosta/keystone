@@ -30,7 +30,6 @@ import os.path
 import shutil
 import sys
 import unittest
-import warnings
 from inspect import getargspec
 from werkzeug.datastructures import Headers
 from werkzeug.wrappers import Request
@@ -321,10 +320,10 @@ class KeystoneTest(unittest.TestCase):
         app = Keystone(self.app_dir)
         for testcase in cases:
             path = testcase['path']
-            with warnings.catch_warnings(record=True) as ws:
+            with util.WarningCatcher(UserWarning) as wc:
                 found = app._find(path)
                 if 'warns' in testcase:
-                    self.assertTrue(len(ws) == 1 and ws[0].category == UserWarning, '_find(%r) should have warned about multiple matches' % path)
+                    self.assertTrue(wc.has_warning(UserWarning), '_find(%r) should have warned about multiple matches' % path)
 
             self.assertEqual(type(found), testcase['type'], '_find(%r) returned %s, expected %s' % (path, type(found), testcase['type']))
 
