@@ -29,5 +29,4 @@
 
 ----
 
-![buildstatus](https://secure.travis-ci.org/dcrosta/keystone.png) at
-[Travis-CI](http://travis-ci.org/#!/dcrosta/keystone)
+[![Build Status](https://secure.travis-ci.org/dcrosta/keystone.png?branch=master)](http://travis-ci.org/dcrosta/keystone)
