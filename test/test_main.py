@@ -59,6 +59,8 @@ class KeystoneTest(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.app_dir, ignore_errors=True)
+        if 'startup' in sys.modules:
+            del sys.modules['startup']
 
     def test_app_is_wsgi(self):
         app = Keystone(self.app_dir)
