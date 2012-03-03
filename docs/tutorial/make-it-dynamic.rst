@@ -127,14 +127,3 @@ template section. Here's another example:
 Of course, since we've chosen a number to count to at random, you'll see a
 different count each time you refresh the page.
 
-
-.. rubric:: Footnotes
-
-.. [#str] When some text appears inside single or double quotation marks in
-   Python, we call that text a "string" as in "a string of letters" (often
-   called characters). You can think of it as a word or phrase, as that's
-   often the sort of thing we'll use strings for. Other common Python
-   variable types to use are integers (usually referred to as ints), which
-   store whole numbers; fractional numbers known as "floats", like 3.14159;
-   and booleans or "bools", which store either ``True`` or ``False``.
-

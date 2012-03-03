@@ -78,18 +78,19 @@ it is served with charset UTF-8.
 
 .. note::
 
-   Files with extension ``.py``, ``.pyc``, ``.pyo``, ``.ks``,
-   and any file whose name begins with an underscore are never served as
-   static files by Keystone. Requests for such files will receive a 404
-   response even if such a file exists.
+   Files with extension ``.py``, ``.pyc``, ``.pyo``, ``.ks``, and any file
+   whose name begins with a dot or underscore are never served as static
+   files by Keystone. Requests for such files will receive a 404 response
+   even if such a file exists.
 
-.. note::
+Keystone makes all static responses cacheable by setting the `Last-Modified`
+header to the file's :func:`mtime <os.stat>`, `ETag` to the MD5 hex digest
+of the `mtime`, and a `Expires` to 1 day from the current date and time. To
+change the `Expires` value, use the ``static_expires`` keyword argument to
+the :class:`~keystone.main.Keystone` class or the ``--static-expires``
+command line option to the `keystone` script. It is not yet possible to
+customize the `Expires` value on a per-file, or per-mimetype basis.
 
-   Keystone makes all static responses cacheable by setting the
-   `Last-Modified` header to the file's :func:`mtime <os.stat>`, `ETag` to
-   the MD5 hex digest of the `mtime`, and a `Expires` to 1 day from the
-   current date and time. This behavior is not yet easily customizable, but
-   will be in a future version of Keystone.
 
 
 HTTP Request and Response
@@ -117,7 +118,6 @@ For example, suppose you have the following application directory::
    $APP/
       + index.ks
       + account/
-         + %username.ks
          + %username.ks
          + %username/
             + profile.ks

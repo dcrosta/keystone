@@ -15,7 +15,7 @@ entirely.
 
     fp = file('/tmp/generated_file.pdf', 'rb')
     header('Content-Type', 'application/pdf')
-    respond_with(fp)
+    return_response(fp)
     ----
 
 The `body` argument to :func:`return_response` may be a string or any

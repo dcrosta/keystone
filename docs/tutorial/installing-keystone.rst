@@ -4,16 +4,16 @@ Installing Keystone
 Keystone is a `Python <http://www.python.org/>`_ application, so you'll need
 to have Python installed on your computer. The exact steps to do so will
 depend on your operating system, and are documented on `the Python downloads
-page <http://www.python.org/download/>`_. Keystone requires any release of
-Python in the 2.x series (and suggests you use the latest 2.x release
-available).
+page <http://www.python.org/download/>`_. Keystone requires Python 2.5 or
+greater (and suggests you use the latest 2.x release available). Keystone
+does not yet support Python 3.
 
 Once you have Python installed, open the Terminal (Windows users: use
 "Command Prompt"), and install Keystone:
 
 .. code-block:: bash
 
-    $ easy_install Keystone
+    $ pip install Keystone
 
 If you get a permission error, you may need to re-run the install command
 using ``sudo``, which will prompt you for your password.

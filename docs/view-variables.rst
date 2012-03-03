@@ -92,8 +92,8 @@ controlled through several :doc:`view-variables`:
 ``http``
 --------
 
-The ``http`` view variable is a module which contains a full suite of
-:class:`~werkzeug.exceptions.HTTPException`s for returning non-200-status
+The ``http`` view variable is a module which contains subclasses of
+:class:`~werkzeug.exceptions.HTTPException` for returning non-200-status
 HTTP responses. Full documentation on the exceptions is available at
 :doc:`http-errors`.
 

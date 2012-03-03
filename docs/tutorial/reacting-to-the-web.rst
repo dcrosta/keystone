@@ -52,8 +52,8 @@ value to an integer (since integers are easy to count with), and move on
 with the rest of the page as before.
 
 However, if there is no "count_to" query string parameter, the test in the
-line ``if 'count_to' in request.values:`` will fail, and the program will pick
-up in the ``else:`` block, and set a default value of 10 to count to. Since
+line ``if 'count_to' in request.values:`` will fail, and the program will
+jump to the ``else:`` block, and set a default value of 10 to count to. Since
 "``10``" is the syntax for expressing an integer in Python, we don't need to
 convert it to an integer (as it already is one, and the conversion would do
 nothing).
@@ -277,7 +277,7 @@ Next, make ``%count_to.ks`` contain the following:
     {% endblock %}
 
 Rembmer that the ``count_to`` variable is set based on the name of the
-file; if you had named the file ``max_number.ks``, then the variable
+file; if you had named the file ``%max_number.ks``, then the variable
 ``count_to`` would have to be updated to be ``max_number`` in the Python
 section of this file. As before, we have to convert it from a string to an
 integer, and have a default value on hand in case it cannot be converted.
