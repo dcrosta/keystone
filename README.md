@@ -27,3 +27,7 @@
 
 ![helloworld.png](http://f.cl.ly/items/2r400y3r2x3P3F1x3u22/helloworld.png)
 
+----
+
+![buildstatus](https://secure.travis-ci.org/dcrosta/keystone.png) at
+[Travis-CI](http://travis-ci.org/#!/dcrosta/keystone)
