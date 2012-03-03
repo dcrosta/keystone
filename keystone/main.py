@@ -29,6 +29,7 @@ import hashlib
 import mimetypes
 import os, os.path
 import sys
+import urlparse
 import warnings
 
 from werkzeug.wrappers import Request, Response
@@ -125,9 +126,15 @@ class Keystone(object):
         if path == '':
             path = 'index'
 
+        # use urljoin, since it preserves the trailing /
+        # that may be a part of path; since self.app_dir
+        # was abspath'd, we must unconditionally add a
+        # trailing slash to *it*, since the second arg
+        # to urljoin is treated relative to the first
+        fspath = urlparse.urljoin(self.app_dir + '/', path)
+
         # first: see if an exact match exists
-        fspath = os.path.abspath(os.path.join(self.app_dir, path))
-        if os.path.exists(fspath):
+        if os.path.isfile(fspath):
             if os.path.basename(fspath).startswith('_'):
                 return None
             return file(fspath, 'rb')
@@ -135,7 +142,7 @@ class Keystone(object):
         # next: see if an exact path match with
         # extension ".ks" exists, and load template
         fspath += '.ks'
-        if os.path.exists(fspath):
+        if os.path.isfile(fspath):
             return self.engine.get_template(path + '.ks')
 
         # finally: see if a parameterized path
