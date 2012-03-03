@@ -25,6 +25,7 @@
 
 
 from datetime import datetime
+from itertools import izip
 import hashlib
 import mimetypes
 import os, os.path
@@ -145,65 +146,96 @@ class Keystone(object):
         if os.path.isfile(fspath):
             return self.engine.get_template(path + '.ks')
 
-        # finally: see if a parameterized path
-        # matches the request path. the matched
-        # file must end in ".ks"
-
-        parts = path.split('/')
-        pathdepth = path.count('/')
+        # finally: see if a parameterized path matches
+        # the request path.
         candidates = []
 
+        pathparts = path.split('/')
+        pathdepth = path.count('/')
         for dirpath, dirnames, filenames in os.walk(self.app_dir):
-            urlpath = dirpath[len(self.app_dir)+1:]
-            depth = urlpath.count('/')
-
-            for i, dirname in reversed(list(enumerate(dirnames))):
+            dirpath = dirpath[len(self.app_dir):]
+            depth = dirpath.count('/')
+            for dirname in list(dirnames):
+                if dirname == pathparts[depth]:
+                    continue
                 if dirname.startswith('%'):
                     continue
-                if depth < pathdepth and dirname == parts[depth]:
-                    continue
-                del dirnames[i]
+                dirnames.remove(dirname)
 
-            for filename in filenames:
-                if not filename.endswith('.ks'):
-                    continue
-                if depth == pathdepth and filename.startswith('%'):
-                    candidates.append(os.path.join(urlpath, filename))
-                if depth + 1 == pathdepth and filename == 'index.ks' and parts[-1] in ('', 'index'):
-                    candidates.append(os.path.join(urlpath, filename))
-                if depth + 1 == pathdepth and filename.startswith('%') and parts[-1] not in ('', 'index'):
-                    candidates.append(os.path.join(urlpath, filename))
+            if pathdepth == depth:
+                dirpath = dirpath.lstrip('/')
+                for filename in filenames:
+                    if filename.startswith('%'):
+                        candidates.append(os.path.join(dirpath, filename))
+                    elif filename.endswith('.ks'):
+                        if pathparts[-1] == '' and filename == 'index.ks' or \
+                           filename == pathparts[-1] + '.ks':
+                            candidates.append(os.path.join(dirpath, filename))
+                    elif filename == pathparts[-1]:
+                        candidates.append(os.path.join(dirpath, filename))
 
         if not candidates:
             return None
 
-        # score is +1 for each exactly-matching path segment
-        maxscore = 0
-        for i, candidate in enumerate(candidates):
-            score = 0
-            urlparams = {}
-            for pathpart, candidatepart in zip(parts, candidate.split('/')):
-                if pathpart == candidatepart:
-                    score += 1
-                elif candidatepart.startswith('%'):
-                    name = candidatepart[1:]
-                    if name.endswith('.ks'):
-                        name = name[:-3]
-                    urlparams[name] = pathpart
-            maxscore = max(maxscore, score)
-            candidates[i] = (score, candidate, urlparams)
-
-        candidates.sort(key=lambda item: item[1])
-        candidates.sort(key=lambda item: item[0], reverse=True)
-        candidates = [c for c in candidates if c[0] == maxscore]
+        scores = self._score_candidates(path, candidates)
+        maxscore = max(scores)
+        candidates = [c for c, s in izip(candidates, scores) if s == maxscore]
 
         if len(candidates) > 1:
+            # choose the first one alphabetically;
+            # this is arbitrary, but consistent
+            candidates.sort()
             warnings.warn(
                 'Multiple parameterized paths matched: %r, choosing %r' %
-                ([c[1] for c in candidates], candidates[0][1]))
+                (candidates, candidates[0]))
 
-        template = self.engine.get_template(candidates[0][1]).copy()
-        template.urlparams = candidates[0][2]
+        winner = candidates[0]
+        if not winner.endswith('.ks'):
+            # we've matched a static file with a wildcard
+            # path, so just return a file object on it
+            fspath = os.path.join(self.app_dir, winner)
+            return file(fspath, 'rb')
 
+        urlparams = {}
+        for pathpart, urlpart in izip(path.split('/'), winner.split('/')):
+            if urlpart.startswith('%'):
+                name = urlpart[1:]
+                if name.endswith('.ks'):
+                    name = name[:-3]
+                urlparams[name] = pathpart
+
+        template = self.engine.get_template(winner).copy()
+        template.urlparams = urlparams
         return template
+
+    def _score_candidates(self, path, candidates):
+        """
+        When several templates may match a path, we score the
+        candidate templates according to this algorithm:
+
+        * Assign one point to each candidate for each path segment
+          that matches exactly
+        * Assign two points to each candidate if the final path
+          segment is the empty string (that is, the path ended in
+          a forward slash) and the candidate's final segment is
+          "index.ks"
+
+        Returns a list of scores in the same order as candidates.
+        """
+        pparts = path.split('/')
+        scores = []
+
+        for candidate in candidates:
+            cparts = candidate.split('/')
+            score = 0
+            for pathpart, candidatepart in izip(pparts, cparts):
+                if candidatepart.endswith('.ks'):
+                    candidatepart = candidatepart[:-3]
+                if pathpart == candidatepart:
+                    score += 1
+                elif pathpart == '' and candidatepart == 'index':
+                    score += 2
+            scores.append(score)
+
+        return scores
 
