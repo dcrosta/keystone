@@ -1,5 +1,6 @@
 .*.swp
 *.pyc
+.coverage
 distribute-*.egg
 distribute-*.tar.gz
 keystone.egg-info

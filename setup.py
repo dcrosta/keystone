@@ -33,7 +33,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     install_requires=REQUIRES,
-    test_suite='test',
+    setup_requires=['nose'],
+    tests_require=['coverage'],
     packages=['keystone'],
     entry_points={
         'console_scripts': [
