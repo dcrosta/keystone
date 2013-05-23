@@ -39,7 +39,7 @@ class TemplateNotFound(Exception):
     """Indicates that a .ks template by the given name does not exist."""
 
 class StopViewFunc(Exception):
-    """Raised by return_response() to prevent templat rendering."""
+    """Raised by return_response() to prevent template rendering."""
     def __init__(self, body):
         self.body = body
 
